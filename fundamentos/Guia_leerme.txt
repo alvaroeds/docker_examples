@@ -1,0 +1,286 @@
+//inicio
+PAra hacer un hello word puedes hacer:
+    docker run hello-world
+Esto solo retorna lo que el deamon de Docker le retorna al cliente
+(si vuelves a ejecutarlo te puedes dar cuenta que lo que retorna es diferente, la primera vez que ejecitas este comando
+Docker te dice que no encuenta lo que la imagen y luego la busca y descarga para que pueda usarla; Todo esto de manera
+automatica. La segunda vez al ya saber a que te refieres, no hace esta operacion)
+
+
+//contenedores
+-Son la pieza fundamental de docker.
+-Todos los contenedores tienen un id único
+-Es una agrupación de uno o más procesos
+-Ejecuta sus procesos de forma nativa
+-Los contenedores ven su universo y no fuera de el
+-No tienen forma de consumir más recursos de las que el contenedor les permite
+
+
+//El estado
+Para listar todos los contenedores de Docker, utilizamos el comando :
+    docker ps       -> Lisra contenedores en uso
+    docker ps -a    -> Lista todos los contenedores
+    docker ps -aq   -> Lista los id de todos los contendores
+Podemos inspeccionar un contenedor en específico utilizando:
+    docker inspect nombreDelContenedor
+                   idDelContenedor
+Podemos filtrar un contenido especifico de Docker con el comando filter:  -f '{{ json .contenido.especifico }}'
+    docker inspect -f '{{ json .Config.Env }}' nombreDelContenedor
+                                               idDelContenedor
+Podemos renombrar un contenedor
+     docker rename nombreDelContenedor nuevoNombreContenedor
+
+
+//Ejecutar un contenedor (docker run)
+Siempre que queremos crear un contenedor se hace con el comando "docker run"
+Podemos asignarle un nombre al momento de crear el contenedor
+    docker run --name nombreContenedor imagenContedor
+    ejemplo:
+        docker run --name prueba hello-world
+        docker run ubuntu
+Para que ejecutar una imagen de forma iteractiva podemos agregar en comando "-it"
+    docker run -it ubuntu
+Para ejecutar un comando en un contenedor existente se usa "exec"
+    docker exec -it nombreContendor bash
+Al usar comandos al iniciar un contenedor (Ubuntu en este caso), se le asigna el Process ID 1 a ese comando
+    docker run ubuntu tail -f /dev/null
+
+
+//Eliminar un contenedor (docker rm)
+Podemos eliminar un contendor con "docker rm"
+    docker rm nombreContenedor
+Para eliminar un contedor que está corriendo podemos usar -f
+    docker rm -f nombreContenedor
+Si queremos eliminar todos los contenedores existentes podemos usar
+    docker rm $(docker ps -aq)
+    *** ESTO ELIMINA TODOS LOS CONTENEDORES EXISTENTES ***
+
+
+//Logs del contenedor (docker logs)
+Podemos ver el out-put de cualquier contendor se usa el comando "docker logs" (no lo ejecuta, solo imprime el log)
+    docker logs nombreContendor
+
+
+//Comando --detach (-d)
+Este comando es muy efecaz, porque permite olvidarte del como y dejar que docker resuelva si el contenedor
+tiene un output (tail), es iteractivo (-it) y te devuelva el control de la terminal.
+    docker run --detach --name nombreContenedor imagenContenedor
+    ejemplo:
+        docker run -d --name server nginx
+
+
+//Exponer contenedores al mundo exterior
+    Los contenedores están aislados del sistema y a nivel de red, cada contenedor tiene su
+    propia stack de net y sus propios puertos.
+
+    Debemos redirigir los puertos del contenedor a los de la computadora(host) y lo podemos
+    hacer al utilizar el comando publish(-p) de la siguiente manera "-p puertoHost:puertoContedor":
+        docker run -d --name nombreContenedor -p 8080:80 nombreImagen
+        docker run -d --name webserver -p 8080:80 nginx
+
+
+
+
+//Datos en Docker
+    A pesar de que no es lo más divertido que tiene Docker, esta herramienta nos permite recuperar
+    datos que podíamos dar por perdido.
+    Existen tres maneras de hacer permanencia de datos:
+        Bind mount
+        Volume
+        tmpfs mount
+
+    Si queremos usar un contenedor que necesita datos, como una base de datos por ejemmplo podemos
+    solucionarlo con
+
+    ->MOUNTS
+        Con esto podemos montar una carpeta externa dentro del contenedor y guardar data en ella que sera
+        la misma, tanto en el host como en en contenedor.
+        Consta en montar data al contenedor. Se usa con el comando -v
+
+        docker run -d -v /user/alvaro/prueba:/data/db --name mongodb_prueba mongo
+        docker run -d -v rutaHost:rutaContenedor --name nombreContenedor imagenContenedor
+
+    ->VOLUMS
+        A diferencia de mount docker escribe en un "docker area" donde el resto de los procesos
+        del host no deberian interactuar.
+
+
+        para crear un volumen nuevo
+            docker volume create nombreVolumen
+
+        Para ver los volumenes de docker usamos:
+            docker volume ls
+
+        Para borrar todos los volumenes que no están en uso por ningun contenedor:
+            docker volume prune
+
+        Con --mount podemos montar un volumen a un contenedor especifico, donde el "src" de ese mount es el
+        nombre del volumen y el "dst" es la parte del contenedor donde se va a monatar el volumen.
+        Podemos utilizar el siguiente comando:
+            docker run -d --name nombreContenedor --mount src=nombreVolumen,dst=rutaVolumenContenedor mongo
+            docker run -d --name db --mount src=dbdata,dst=/data/db mongo
+
+    ->tmpfs
+        <!--falta contenido-->
+
+
+//Imágenes
+    Las imágenes son un componente fundamental de Docker y sin ellas los contenedores
+    no tendrían sentido. Estas imágenes son fundamentalmente plantillas o templates.
+    Algo que debemos tener en cuenta es que las imágenes no van a cambiar, es decir,
+    una vez este realizada no la podremos cambiar.
+
+    Para obtener la imagen de un contenedor se usa el comando pull y el nombre de la imagen
+        docker pull redis
+
+    Para listar las imaganes que tienes actualmente se usa image ls
+        docker image ls
+
+    Al nombre de las imagenes se les dice repositorio, así como tambien se le puede especificar
+    la version que deseas descargar
+    ************** docker pull ubuntu:18.04 *****************
+
+//Crear tus propias imagenes
+    Vamos a crear nuestras propias imágenes, necesitamos un archivo llamado DockerFile que
+    es la ““receta”” que utiliza Docker para crear imágenes.
+
+    *Es importante que el DockerFile siempre empiece con un ““FROM”” sino, no va a funcionar.*
+
+        Puedes encontrar un Dockerfle con esta estructura en la carpeta "./first_image_create/"
+
+        **Dockerfile**
+        **************************
+        FROM ubuntu
+
+        RUN touch /usr/src/hola-platzi
+        **************************
+    El FROM lo que indica es necesario y se sua para indicar que imagen e usa
+    RUN le indica una accion a docker
+
+    Para ejecutar un dockerfile usamos
+        docker build -t ubuntu:prueba .
+    Donde build ejecuta -t le pone nombre y "." es el path, osea el contexto de build
+
+    El flujo para construir en Docker siempre es así:
+        Dockerfile – **build ** –> Imágen – run --> Contenedor
+
+    Para poder cambiar el repositori:tag de una imagen podemos usar
+        docker tag ubuntu:prueba repo/ubuntu:prueba
+
+    Si queremos hacer push de una imagen a nuestro docker hub, debemos usar push
+        docker push repository:tag
+
+
+//Sistema de capas
+    Se basa en los Layer, es decir todos los cambios del contenedor que adquiere desde el docker file.
+
+    Podemos ver el history de estos cambios con
+        docker history ubuntu:prueba
+
+    o para verlo completo (no se recomienda)
+        docker history --no-trunc ubuntu:platzi
+
+    Hay una herramienta para poder ver los leyer con una interfaz amigable, les dejo el link de Dive:
+        https://github.com/wagoodman/dive
+
+    Lo que hay entender del sistemas de cambio es que cada leyer esta compueso por los cambios del contenedor,
+    para tener una idea de como funciona debes pensarlo como en un control de versiones.
+    Estas capas te indican que instrucciones, archivos y cambios a afectado al contenedor desde el dockerfile.
+        ejemplo:
+            Sí creo un archivo (layer 1)
+            Elimino el mismo archivo (layer 2)
+
+
+//Desarrollando con Docker
+    Vamos a aplicar lo aprendido, y empezar a desarrollar con docker utlizando como base
+    un proyecto desarrollado en node que lo puedes encontrar en la carpeta "docker-master".
+
+        El dockerfile es de node
+        Aca podemos encontrar COPY que es un comando apra copiar desde build a un destino de la imagen
+        WORKDIR es el equivalente a cd
+        RUN npm install -> le decimos que instale npm
+        EXPOSE 3000 -> le decimos que exponga un puerto el contenedor
+        CMD ["node", "index.js"] -> definimos cual es el comando por defecto que va a correr un contenedor
+
+    Para ejecutar el dockerfile y crear una imagen hacemos
+        docker build -t pruebanode .
+
+    Para crear un contenedor con la imagen que creamos
+        docker run --rm --name nombreContenedor -p 3000:3000 pruebanode
+        *** --rm nos permite eliminar el contenedor una vez que se deje de ejecutar ***
+
+    Debes tener en cuenta que docker tiene un cache que ayuda al momento de build de una imagen
+    pero si alteras algo que esta relacionado a un layer, los demas comando despues de ese,
+    vuelven a cargar, es por eso que siempre debes optimizar el dockerfile como buena practica.
+
+    Para poder correr nodemon en este caso se debe montar el sistema de archivos con:
+
+        docker run --rm -p 3005:3000 -v rutaArchivos:rutaContanedor pruebanode
+
+        docker run --rm -p 3005:3000 -v /ruta/fundamentos/docker-master:/usr/src pruebanode
+
+    
+
+//Networking
+Podemos conectar varios contenedores de una manera fácil sencilla y rapida.
+Vamos a ver que con tan solo unos comandos tendremos la colaboración entre contenedores.
+
+Para listar las redes de docker
+    docker network ls
+Los que vienen con docker son:
+bridge -> Es la red donde por defecto se pueden conectar los contenedores por un keyword llamado link (ya no se usa link)
+host -> Es la forma que tiene docker para representar la red de mi maquina
+none -> es el "/dev/null", basicamente si corremos un contenedor con este network deshabilitamos el networking para este
+
+Para crear una nueva network usamos
+    docker network create --attachable nombreNetwork
+    (el comando --attachable es para que mas de un contenedor pueda ser asignado a la red)
+
+Para poner un contenedor dentro de una network podemos usar
+    docker network connect nombreNetwork nombreContenedor
+
+Para ver que contenedores tiene conectado a una red especifica podemos usar
+    docker network inspect nombreNetwork
+
+****************** IMPORTANTE ***************************
+Los contenedores pueden verse entre sí, solo si estan conectados a la misma res.
+Y pueden usar su nombre como hostname (direccion de la computadora)
+
+--env nos permite crear una variable de entorno al momento de crear el contenedor
+
+***UN PEQUEÑO EJEMPLO PARA CONECTAR NUESTRO PROYECTO A MONGO
+    1. docker network create pruebanet
+    2. docker run -d --name db mongo
+    3. docker network connect pruebanet db
+    4. docker run -d --name nombreContenedor -p 3000:3000 --env MONGO_URL=mongodb://db:27017/test nombreImagen
+        (usar la imagen del proyecto de prueba)
+
+
+//Docker-compose
+Docker compose es una herramienta que nos permite describir de forma declarativa la arquitectura
+de nuestra aplicación, utiliza composefile (docker-compose.yml).
+
+se usa en un arcivo docker-compose.yml
+Para saber mas de esto puedes leer:
+-https://docs.docker.com/compose/install/#install-compose
+-https://docs.docker.com/compose/compose-file/compose-versioning/
+-https://docs.docker.com/compose/startup-order/
+
+Tenemos un ejemplo dentro del proyecto solo debes usar el siguiente comando para activarlo
+    docker-compose up
+Y hace todo de maner automatica
+    docker-compose ps
+                    up -d
+                    down
+                     logs -f nombreContenedor
+
+
+
+
+//-docker ignore nos sirve par aignorar documentos y carpetas para que el contexto de build no lo note
+
+
+//Manejando docker desde un contenedor
+  Vamos en esta clase a ver uno de los secretos mejor guardados de docker.
+  Vamos a ver como manejar un contenedor desde otro contenedor.
+  Es una manera muy interesante para aprovechar la potencia de docker y todas las ventajas que ofrece
