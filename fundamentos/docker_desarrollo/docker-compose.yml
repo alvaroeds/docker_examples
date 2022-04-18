@@ -1,0 +1,33 @@
+# Declaramos al version que usaremos
+version: "3.8"
+
+#con este apartado declararemos los servicios que definiremos
+services:
+  app:
+    # Busca una magen con este nombre para construir o toma el nombre si hace build
+    image: pruebanode
+    environment:
+      MONGO_URL: "mongodb://db:27017/test"
+    depends_on:
+      - db
+    ports:
+      # Podemos declarar un rango de puertos a asignar
+      - "3000-3001:3000"
+    volumes:
+      # Montamos todos los archivos
+      - .:/usr/src
+      # Con esto nos aseguramos que omita esta carpeta al momento de montar el volumen
+      - /usr/src/node_modules
+    networks:
+      #- default
+      - prueba-compose
+  db:
+    image: mongo
+    networks:
+      #- default
+      - prueba-compose
+
+networks:
+  prueba-compose:
+    name: prueba-compose
+    #external: true

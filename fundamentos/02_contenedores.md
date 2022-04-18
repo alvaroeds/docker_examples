@@ -1,3 +1,16 @@
+
+- [contenedores](#contenedores)
+  - [El estado](#el-estado)
+  - [Ejecutar un contenedor (docker run)](#ejecutar-un-contenedor-docker-run)
+    - [Comando Interactivo -it](#comando-interactivo--it)
+    - [Comando --detach (-d)](#comando---detach--d)
+    - [Comando exec](#comando-exec)
+  - [Eliminar un contenedor (docker rm)](#eliminar-un-contenedor-docker-rm)
+  - [Logs del contenedor (docker logs)](#logs-del-contenedor-docker-logs)
+  - [Exponer contenedores al mundo exterior](#exponer-contenedores-al-mundo-exterior)
+  - [Variables de enorno](#variables-de-enorno)
+
+
 # contenedores
 
 - Son la pieza fundamental de docker.
@@ -117,3 +130,11 @@ Debemos redirigir los puertos del contenedor a los de la computadora(host) y lo 
 
         docker run -d --name nombreContenedor -p 8080:80 nombreImagen
         docker run -d --name webserver -p 8080:80 nginx
+
+## Variables de enorno
+
+> --env nos permite crear una variable de entorno al momento de crear el contenedor
+
+```docker
+docker run --rm d --env PRUEBA='datosPrueba' --name prueba ubuntu
+```

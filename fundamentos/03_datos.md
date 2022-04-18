@@ -1,16 +1,14 @@
-# Datos en Docker
-
-Esta herramienta nos permite recuperar datos que podíamos dar por perdido.
-Existen tres maneras de hacer permanencia de datos:
-
 - [Datos en Docker](#datos-en-docker)
   - [Mounts](#mounts)
   - [Volumns](#volumns)
   - [tmpfs (temporary file system mount)](#tmpfs-temporary-file-system-mount)
 - [Insertar y extraer archivos de un contenedor](#insertar-y-extraer-archivos-de-un-contenedor)
 
-Si queremos usar un contenedor que necesita datos, como una base de datos por ejemmplo podemos
-solucionarlo con
+
+# Datos en Docker
+
+Esta herramienta nos permite recuperar datos que podíamos dar por perdido.
+Existen tres maneras de hacer permanencia de datos:
 
 ## Mounts
 

@@ -1,2 +1,6 @@
 #CARPETAS
 .idea/
+
+.DS_Store
+node_modules
+*.log
